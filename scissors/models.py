@@ -25,6 +25,9 @@ class Service(models.Model):
     class Meta:
         db_table = 'services'
 
+    def __str__(self):
+        return self.name
+
 class Staff(models.Model):
     name = models.CharField(max_length=100)
     email = models.CharField(max_length=100)
@@ -34,6 +37,9 @@ class Staff(models.Model):
 
     class Meta:
         db_table = 'staffs'
+
+    def __str__(self):
+        return self.name
 
 class Customers(models.Model):
     first_name = models.CharField(max_length=100)
@@ -47,6 +53,8 @@ class Customers(models.Model):
     class Meta:
         db_table = 'customers'
 
+    def __str__(self):
+        return self.first_name + ' ' + self.last_name
 
 
 class DateTimeSlots(models.Model):
@@ -67,6 +75,9 @@ class DateTimeSlots(models.Model):
 
     class Meta:
         db_table = 'datetime_slots'
+
+    def __str__(self):
+        return f"{self.date}\n({self.start_time}-{self.end_time})"
 
 class ServiceDetail(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True)
