@@ -2,13 +2,14 @@ from datetime import datetime
 from pyexpat.errors import messages
 
 import graphene
+import graphql_jwt
 from graphene import relay
 from graphql import GraphQLError
 
 from black_scissors.core.base_mutation import BaseMutation
 from scissors.admin import DateTimeSlotsAdmin
 from scissors.graphql.input import DetailInput
-from scissors.graphql.types import CategoryType, SlotType, AppointmentType
+from scissors.graphql.types import CategoryType, SlotType, AppointmentType, UserType
 from scissors.models import DateTimeSlots, Customers, ServiceDetail
 
 
@@ -74,3 +75,11 @@ class SaveServiceDetailsMutation(BaseMutation):
             raise GraphQLError('Your Appointment already exists')
         service = ServiceDetail.objects.create(**data)
         return cls(message="Appointment Booked Successfully", appointment_details=service)
+
+
+class ObtainToken(graphql_jwt.ObtainJSONWebToken):
+    user = graphene.Field(UserType)
+
+    @classmethod
+    def resolve(cls, root, info, **kwargs):
+        return cls(user=info.context.user)

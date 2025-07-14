@@ -5,7 +5,7 @@ import graphene
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from scissors.models import Category, Service, Staff, DateTimeSlots, ServiceDetail, Customers
+from scissors.models import Category, Service, Staff, DateTimeSlots, ServiceDetail, Customers, TblUser
 
 
 class CategoryType(DjangoObjectType):
@@ -89,4 +89,11 @@ class AppointmentType(DjangoObjectType):
     class Meta:
         model = ServiceDetail
         fields = '__all__'
+        interfaces = (relay.Node,)
+
+
+class UserType(DjangoObjectType):
+    class Meta:
+        model = TblUser
+        fields = ['id', 'email', 'username', 'first_name', 'last_name']
         interfaces = (relay.Node,)

@@ -1,6 +1,16 @@
+from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.db import models
 
 # Create your models here.
+
+class TblUser(AbstractUser, PermissionsMixin):
+    token_version = models.IntegerField(default=0)
+    mobile = models.CharField(max_length=11, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tbl_user'
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
