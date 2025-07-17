@@ -9,6 +9,7 @@ class BaseAdminQuery(graphene.ObjectType):
     class Meta:
         abstract = True
 
+
     @classmethod
     def handle_admin_query(cls, request):
         if cls.authentication_required and not request.user.is_authenticated:

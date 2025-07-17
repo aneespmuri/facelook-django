@@ -13,7 +13,6 @@ import os
 from datetime import timedelta
 from pathlib import Path
 import dotenv
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 # load dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -85,6 +84,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'black_scissors.wsgi.application'
 
+
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
@@ -98,6 +98,7 @@ DATABASES = {
         'PORT': '5432',
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -117,6 +118,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -127,6 +129,7 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/

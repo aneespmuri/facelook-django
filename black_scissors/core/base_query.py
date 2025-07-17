@@ -4,8 +4,10 @@ from graphql_relay import from_global_id
 
 
 class BaseQuery(graphene.ObjectType):
+
     class Meta:
         abstract = True
+
 
     @classmethod
     def handle_query(cls, request):

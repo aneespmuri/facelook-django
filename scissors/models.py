@@ -1,7 +1,6 @@
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.db import models
 
-
 # Create your models here.
 
 class TblUser(AbstractUser, PermissionsMixin):
@@ -13,7 +12,6 @@ class TblUser(AbstractUser, PermissionsMixin):
     class Meta:
         db_table = 'tbl_user'
 
-
 class Category(models.Model):
     name = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -24,7 +22,6 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
-
 
 class Service(models.Model):
     name = models.CharField(max_length=100)
@@ -41,7 +38,6 @@ class Service(models.Model):
     def __str__(self):
         return self.name
 
-
 class Staff(models.Model):
     name = models.CharField(max_length=100)
     email = models.CharField(max_length=100)
@@ -54,7 +50,6 @@ class Staff(models.Model):
 
     def __str__(self):
         return self.name
-
 
 class Customers(models.Model):
     first_name = models.CharField(max_length=100)
@@ -94,7 +89,6 @@ class DateTimeSlots(models.Model):
     def __str__(self):
         return f"{self.date}\n({self.start_time}-{self.end_time})"
 
-
 class ServiceDetail(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True)
     service = models.ForeignKey(Service, on_delete=models.CASCADE, null=True)
@@ -106,7 +100,6 @@ class ServiceDetail(models.Model):
 
     class Meta:
         db_table = 'service_detail'
-
 
 class Posts(models.Model):
     title = models.CharField(max_length=100)

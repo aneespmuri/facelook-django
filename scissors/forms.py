@@ -13,10 +13,9 @@ class BulkCreateSlotsForm(forms.ModelForm):
     )
     end_time = forms.TimeField(
         input_formats=['%I:%M %p'],
-        widget=forms.TimeInput(format='%I:%M %p', attrs={'class': 'form-control', 'placeholder': '04:00 PM'}, )
+        widget=forms.TimeInput(format='%I:%M %p', attrs={'class': 'form-control', 'placeholder': '04:00 PM'},)
     )
-    status = forms.ChoiceField(choices=DateTimeSlots.choice_fields,
-                               widget=forms.Select(attrs={'class': 'form-control'}))
+    status = forms.ChoiceField(choices=DateTimeSlots.choice_fields, widget=forms.Select(attrs={'class': 'form-control'}))
 
     class Meta:
         model = DateTimeSlots

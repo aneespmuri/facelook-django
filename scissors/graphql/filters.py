@@ -1,6 +1,6 @@
 import django_filters
 
-from scissors.models import Category, Service, Staff, DateTimeSlots
+from scissors.models import Category, Service, Staff, DateTimeSlots, ServiceDetail
 
 
 class CategoryFilterSet(django_filters.FilterSet):
@@ -25,7 +25,15 @@ class StaffFilterSet(django_filters.FilterSet):
 
 
 class SlotFilterSet(django_filters.FilterSet):
+    slot_id = django_filters.NumberFilter(field_name='id', lookup_expr='exact')
+
     class Meta:
         model = DateTimeSlots
+        fields = []
+
+
+class ServiceDetailFilterSet(django_filters.FilterSet):
+    class Meta:
+        model = ServiceDetail
         fields = {
             'id': ['exact'], }

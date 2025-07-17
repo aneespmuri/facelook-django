@@ -88,13 +88,11 @@ class DateTimeSlotsAdmin(admin.ModelAdmin):
                         end_time=end_time.replace(second=0, microsecond=0)
                     ).exists()
                 ]
-                if len(slots) > 0:
+                if len(slots)>0 :
                     DateTimeSlots.objects.bulk_create(slots)
                     self.message_user(request, f"✅ Created {len(slots)} new slots.")
                 else:
-                    self.message_user(request,
-                                      f"⚠ No new slots were created. Same slot exist with {start_date.strftime('%B %d, %Y')} .",
-                                      level='warning')
+                    self.message_user(request, f"⚠ No new slots were created. Same slot exist with {start_date.strftime('%B %d, %Y')} .", level='warning')
                 return redirect('..')
         else:
             form = BulkCreateSlotsForm()
