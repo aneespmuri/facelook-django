@@ -5,7 +5,7 @@ import graphene
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from scissors.models import Category, Service, Staff, DateTimeSlots, ServiceDetail, Customers, TblUser
+from scissors.models import Category, Service, Staff, DateTimeSlots, ServiceDetail, Customers, TblUser, Posts
 
 
 class CategoryType(DjangoObjectType):
@@ -35,6 +35,7 @@ class ServiceType(DjangoObjectType):
 
     def resolve_created_at(self, info, **kwargs):
         return int(self.created_at.timestamp()) if self.created_at else None
+
     def resolve_updated_at(self, info, **kwargs):
         return int(self.updated_at.timestamp()) if self.updated_at else None
 
@@ -42,6 +43,7 @@ class ServiceType(DjangoObjectType):
 class StaffType(DjangoObjectType):
     created_at = graphene.Int()
     updated_at = graphene.Int()
+
     class Meta:
         model = Staff
         interfaces = (relay.Node,)
@@ -58,16 +60,18 @@ class StaffType(DjangoObjectType):
                 encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
                 return f"data:{mime_type or 'image/jpeg'};base64,{encoded_image}"
         return None
+
     def resolve_created_at(self, info, **kwargs):
         return int(self.created_at.timestamp()) if self.created_at else None
+
     def resolve_updated_at(self, info, **kwargs):
         return int(self.updated_at.timestamp()) if self.updated_at else None
-
 
 
 class SlotType(DjangoObjectType):
     start_time = graphene.String()
     end_time = graphene.String()
+
     class Meta:
         model = DateTimeSlots
         fields = '__all__'
@@ -79,11 +83,13 @@ class SlotType(DjangoObjectType):
     def resolve_end_time(self, info, **kwargs):
         return self.end_time.strftime("%I:%M %p")
 
+
 class CustomerType(DjangoObjectType):
     class Meta:
         model = Customers
         interfaces = (relay.Node,)
         fields = '__all__'
+
 
 class AppointmentType(DjangoObjectType):
     class Meta:
@@ -92,8 +98,23 @@ class AppointmentType(DjangoObjectType):
         interfaces = (relay.Node,)
 
 
+# admin
 class UserType(DjangoObjectType):
     class Meta:
         model = TblUser
         fields = ['id', 'email', 'username', 'first_name', 'last_name']
         interfaces = (relay.Node,)
+
+
+class PostType(DjangoObjectType):
+    # description = graphene.Field()
+    class Meta:
+        model = Posts
+        fields = '__all__'
+        interfaces = (relay.Node,)
+        filter_fields = ["id", "title"]
+
+    # def resolve_description(self, info, **kwargs):
+    #     if isinstance(self.description, dict):
+    #         return self.description
+    #     return []

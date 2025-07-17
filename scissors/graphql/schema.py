@@ -1,12 +1,15 @@
 import graphene
+import graphql_jwt
 from graphene_django.filter import DjangoFilterConnectionField
 
+from black_scissors.core.base_admin_query import BaseAdminQuery
 from black_scissors.core.base_query import BaseQuery
-from scissors.admin import DateTimeSlotsAdmin
+# from scissors.admin import DateTimeSlotsAdmin
 from scissors.graphql.filters import CategoryFilterSet, ServiceFilterSet, StaffFilterSet, SlotFilterSet
-from scissors.graphql.mutations import CategoryMutation, UpdateTimeSlotsMutation, SaveServiceDetailsMutation
-from scissors.graphql.types import CategoryType, ServiceType, StaffType, SlotType
-from scissors.models import Category, Service, Staff, DateTimeSlots
+from scissors.graphql.mutations import CategoryMutation, UpdateTimeSlotsMutation, SaveServiceDetailsMutation, \
+    ObtainToken, CreatePostMutation
+from scissors.graphql.types import CategoryType, ServiceType, StaffType, SlotType, AppointmentType, PostType
+from scissors.models import Category, Service, Staff, DateTimeSlots, ServiceDetail, Posts
 
 
 class CategoryQuery(BaseQuery):
@@ -39,10 +42,35 @@ class DateTimeSoltQuery(BaseQuery):
             return DateTimeSlots.objects.filter(date=kwargs['date'])
         return DateTimeSlots.objects.all()
 
-class ScissorsQuery(CategoryQuery, ServiceQuery, StaffQuery, DateTimeSoltQuery):
-    pass
+class PostQuery(BaseQuery):
+    posts = DjangoFilterConnectionField(PostType)
+
+    @classmethod
+    def resolve_posts(cls, root, info, **kwargs):
+        return Posts.objects.all()
+
 
 class ScissorMutation(graphene.ObjectType):
     create_category = CategoryMutation.Field()
     update_status = UpdateTimeSlotsMutation.Field()
     book_appointment = SaveServiceDetailsMutation.Field()
+    create_post = CreatePostMutation.Field()
+    admin_login = ObtainToken.Field()
+    verify_token = graphql_jwt.Verify.Field()
+    refresh_token = graphql_jwt.Refresh.Field()
+
+# admin
+
+class AdminServiceDetailQuery(BaseAdminQuery):
+    detail = DjangoFilterConnectionField(AppointmentType,filterset_class=ServiceDetailFilterSet, status=graphene.String())
+
+    @classmethod
+    def resolve_detail(cls, root, info, **kwargs):
+        print('--------')
+        cls.handle_admin_query(info.context)
+        if 'status' in kwargs:
+            return ServiceDetail.objects.filter(date_range__status=kwargs['status'])
+        return ServiceDetail.objects.all()
+
+class ScissorsQuery(CategoryQuery, ServiceQuery, StaffQuery, DateTimeSoltQuery, PostQuery, AdminServiceDetailQuery):
+    pass

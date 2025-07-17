@@ -100,3 +100,14 @@ class ServiceDetail(models.Model):
 
     class Meta:
         db_table = 'service_detail'
+
+class Posts(models.Model):
+    title = models.CharField(max_length=100)
+    subtitle = models.CharField(max_length=100)
+    post_img = models.TextField(null=True, blank=True)
+    description = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'posts'

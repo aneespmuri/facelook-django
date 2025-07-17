@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
+from datetime import timedelta
 from pathlib import Path
 import dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -149,8 +150,9 @@ if not os.path.exists(MEDIA_ROOT):
     os.makedirs(MEDIA_ROOT)
 
 GRAPHENE = {
-    'MIDDLEWARE': [
-        'graphql_jwt.middleware.JSONWebTokenMiddleware',
+    "SCHEMA": "black_scissors.graphql.schema.schema",
+    "MIDDLEWARE": [
+        "black_scissors.core.middlewares.authentication.CustomJWTAuthMiddleware",
     ],
 }
 
@@ -160,3 +162,8 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 AUTH_USER_MODEL = 'scissors.TblUser'
+
+GRAPHQL_JWT = {
+    "JWT_EXPIRATION_DELTA": timedelta(minutes=60),
+    "JWT_REFRESH_EXPIRATION_DELTA": timedelta(days=7),
+}

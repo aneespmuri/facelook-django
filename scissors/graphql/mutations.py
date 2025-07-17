@@ -6,11 +6,12 @@ import graphql_jwt
 from graphene import relay
 from graphql import GraphQLError
 
+from black_scissors.core.base_admin_mutation import BaseAdminMutation
 from black_scissors.core.base_mutation import BaseMutation
 from scissors.admin import DateTimeSlotsAdmin
 from scissors.graphql.input import DetailInput
-from scissors.graphql.types import CategoryType, SlotType, AppointmentType, UserType
-from scissors.models import DateTimeSlots, Customers, ServiceDetail
+from scissors.graphql.types import CategoryType, SlotType, AppointmentType, UserType, PostType
+from scissors.models import DateTimeSlots, Customers, ServiceDetail, Posts
 
 
 class CategoryMutation(relay.ClientIDMutation):
@@ -76,10 +77,45 @@ class SaveServiceDetailsMutation(BaseMutation):
         service = ServiceDetail.objects.create(**data)
         return cls(message="Appointment Booked Successfully", appointment_details=service)
 
+class CreatePostMutation(BaseMutation):
+    class Input:
+        title = graphene.String(required=True)
+        subtitle = graphene.String(required=True)
+        img = graphene.String()
+        description = graphene.String(required=True)
+        description1 = graphene.String()
+        description2 = graphene.String()
+        description3 = graphene.String()
+        description4 = graphene.String()
 
+    post = graphene.Field(PostType)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **input):
+        title = input.get('title')
+        subtitle = input.get('subtitle')
+        post_img = input.get('img')
+        description = input.get('description')
+        data = {'title': title, 'subtitle': subtitle, 'post_img': post_img}
+        descript_dict = { 'description': description}
+        for d in range(1,5):
+            if 'description'+str(d) in input:
+                descript_dict['description'+str(d)] = input.get('description'+str(d))
+        data['description'] = descript_dict
+        if Posts.objects.filter(**data).exists():
+            raise GraphQLError('Your Posts already exists')
+        Posts.objects.create(**data)
+        post = Posts.objects.filter(**data).first()
+        return cls(message="Added post successfully", post = post)
+
+
+
+#Admin login
 class ObtainToken(graphql_jwt.ObtainJSONWebToken):
     user = graphene.Field(UserType)
 
     @classmethod
     def resolve(cls, root, info, **kwargs):
         return cls(user=info.context.user)
+
+
