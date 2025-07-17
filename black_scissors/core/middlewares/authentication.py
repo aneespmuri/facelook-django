@@ -1,5 +1,6 @@
 from graphql_jwt.middleware import JSONWebTokenMiddleware
 
+
 class CustomJWTAuthMiddleware(JSONWebTokenMiddleware):
     def resolve(self, next, root, info, **kwargs):
         request = info.context

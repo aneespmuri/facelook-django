@@ -55,6 +55,7 @@ class SaveServiceDetailsMutation(BaseMutation):
         basic_details = DetailInput()
 
     appointment_details = graphene.Field(AppointmentType)
+
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
         data = {'category_id': cls.get_id(input.get('category')), 'service_id': cls.get_id(input.get('service')),
@@ -62,7 +63,8 @@ class SaveServiceDetailsMutation(BaseMutation):
         date = input.get('date')
         time_slot = DateTimeSlots.objects.filter(date=date, start_time=datetime.strptime(input.get('start_time'),
                                                                                          "%I:%M %p").time(),
-                                                 end_time=datetime.strptime(input.get('end_time'), "%I:%M %p").time()).first()
+                                                 end_time=datetime.strptime(input.get('end_time'),
+                                                                            "%I:%M %p").time()).first()
         time_slot.status = DateTimeSlots.BOOKED
         time_slot.save()
         data['date_range'] = time_slot
@@ -76,6 +78,7 @@ class SaveServiceDetailsMutation(BaseMutation):
             raise GraphQLError('Your Appointment already exists')
         service = ServiceDetail.objects.create(**data)
         return cls(message="Appointment Booked Successfully", appointment_details=service)
+
 
 class CreatePostMutation(BaseMutation):
     class Input:
@@ -97,25 +100,22 @@ class CreatePostMutation(BaseMutation):
         post_img = input.get('img')
         description = input.get('description')
         data = {'title': title, 'subtitle': subtitle, 'post_img': post_img}
-        descript_dict = { 'description': description}
-        for d in range(1,5):
-            if 'description'+str(d) in input:
-                descript_dict['description'+str(d)] = input.get('description'+str(d))
+        descript_dict = {'description': description}
+        for d in range(1, 5):
+            if 'description' + str(d) in input:
+                descript_dict['description' + str(d)] = input.get('description' + str(d))
         data['description'] = descript_dict
         if Posts.objects.filter(**data).exists():
             raise GraphQLError('Your Posts already exists')
         Posts.objects.create(**data)
         post = Posts.objects.filter(**data).first()
-        return cls(message="Added post successfully", post = post)
+        return cls(message="Added post successfully", post=post)
 
 
-
-#Admin login
+# Admin login
 class ObtainToken(graphql_jwt.ObtainJSONWebToken):
     user = graphene.Field(UserType)
 
     @classmethod
     def resolve(cls, root, info, **kwargs):
         return cls(user=info.context.user)
-
-

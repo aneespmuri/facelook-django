@@ -19,12 +19,14 @@ class CategoryQuery(BaseQuery):
     def resolve_categories(cls, root, info, **kwargs):
         return Category.objects.all()
 
+
 class ServiceQuery(BaseQuery):
     services = DjangoFilterConnectionField(ServiceType, filterset_class=ServiceFilterSet, category_id=graphene.String())
 
     @classmethod
     def resolve_services(cls, root, info, **kwargs):
         return Service.objects.filter(category_id=cls.get_id(kwargs['category_id']))
+
 
 class StaffQuery(BaseQuery):
     staff = DjangoFilterConnectionField(StaffType, filterset_class=StaffFilterSet)
@@ -33,14 +35,16 @@ class StaffQuery(BaseQuery):
     def resolve_staff(cls, root, info, **kwargs):
         return Staff.objects.all()
 
+
 class DateTimeSoltQuery(BaseQuery):
-    slots = DjangoFilterConnectionField(SlotType, filterset_class=SlotFilterSet, date =graphene.Date())
+    slots = DjangoFilterConnectionField(SlotType, filterset_class=SlotFilterSet, date=graphene.Date())
 
     @classmethod
     def resolve_slots(cls, root, info, **kwargs):
         if 'date' in kwargs:
             return DateTimeSlots.objects.filter(date=kwargs['date'])
         return DateTimeSlots.objects.all()
+
 
 class PostQuery(BaseQuery):
     posts = DjangoFilterConnectionField(PostType)
@@ -59,10 +63,12 @@ class ScissorMutation(graphene.ObjectType):
     verify_token = graphql_jwt.Verify.Field()
     refresh_token = graphql_jwt.Refresh.Field()
 
+
 # admin
 
 class AdminServiceDetailQuery(BaseAdminQuery):
-    detail = DjangoFilterConnectionField(AppointmentType,filterset_class=ServiceDetailFilterSet, status=graphene.String())
+    detail = DjangoFilterConnectionField(AppointmentType, filterset_class=ServiceDetailFilterSet,
+                                         status=graphene.String())
 
     @classmethod
     def resolve_detail(cls, root, info, **kwargs):
@@ -71,6 +77,7 @@ class AdminServiceDetailQuery(BaseAdminQuery):
         if 'status' in kwargs:
             return ServiceDetail.objects.filter(date_range__status=kwargs['status'])
         return ServiceDetail.objects.all()
+
 
 class ScissorsQuery(CategoryQuery, ServiceQuery, StaffQuery, DateTimeSoltQuery, PostQuery, AdminServiceDetailQuery):
     pass

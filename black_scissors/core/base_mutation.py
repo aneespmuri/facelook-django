@@ -8,6 +8,7 @@ class BaseMutation(relay.ClientIDMutation):
     # errors = ErrorType()
     message = graphene.String()
     status_code = graphene.Int()
+
     # authentication_required = True
 
     class Meta:

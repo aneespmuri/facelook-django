@@ -20,8 +20,6 @@ class BaseAdminMutation(relay.ClientIDMutation):
             raise GraphQLError('Invalid token.')
         return True
 
-
-
     @classmethod
     def get_id(cls, model_id=None):
         if model_id is not None:
