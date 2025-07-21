@@ -43,6 +43,7 @@ class ServiceType(DjangoObjectType):
 class StaffType(DjangoObjectType):
     created_at = graphene.Int()
     updated_at = graphene.Int()
+    booked = graphene.Boolean()
 
     class Meta:
         model = Staff
@@ -66,6 +67,12 @@ class StaffType(DjangoObjectType):
 
     def resolve_updated_at(self, info, **kwargs):
         return int(self.updated_at.timestamp()) if self.updated_at else None
+
+    def resolve_booked(self, info, **kwargs):
+        if ServiceDetail.objects.filter(staff_id=self.id).exists():
+            service = ServiceDetail.objects.filter(staff_id=self.id).first()
+            return service.date_range.status
+        return DateTimeSlots.FREE
 
 
 class SlotType(DjangoObjectType):

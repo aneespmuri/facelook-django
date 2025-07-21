@@ -67,7 +67,6 @@ class AdminServiceDetailQuery(BaseAdminQuery):
 
     @classmethod
     def resolve_detail(cls, root, info, **kwargs):
-        print('--------')
         cls.handle_admin_query(info.context)
         if 'status' in kwargs:
             return ServiceDetail.objects.filter(date_range__status=kwargs['status'])
