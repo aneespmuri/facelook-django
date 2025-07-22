@@ -43,7 +43,7 @@ class ServiceType(DjangoObjectType):
 class StaffType(DjangoObjectType):
     created_at = graphene.Int()
     updated_at = graphene.Int()
-    booked = graphene.Boolean()
+    status = graphene.String()
 
     class Meta:
         model = Staff
