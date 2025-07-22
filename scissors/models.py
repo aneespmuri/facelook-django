@@ -76,6 +76,7 @@ class DateTimeSlots(models.Model):
         (ONHOLD, 'On Hold'),
         (BOOKED, 'Booked'),
     )
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, null=True, blank=True)
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()

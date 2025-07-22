@@ -35,13 +35,13 @@ class StaffQuery(BaseQuery):
         return Staff.objects.all()
 
 class DateTimeSoltQuery(BaseQuery):
-    slots = DjangoFilterConnectionField(SlotType, filterset_class=SlotFilterSet, date =graphene.Date())
+    slots = DjangoFilterConnectionField(SlotType, filterset_class=SlotFilterSet, date =graphene.Date(), staff = graphene.String())
 
     @classmethod
     def resolve_slots(cls, root, info, **kwargs):
         if 'date' in kwargs:
-            return DateTimeSlots.objects.filter(date=kwargs['date'])
-        return DateTimeSlots.objects.all()
+            return DateTimeSlots.objects.filter(date=kwargs['date'],staff_id=cls.get_id(kwargs['staff_id']))
+        return DateTimeSlots.objects.filter(staff_id=cls.get_id(kwargs['staff_id']))
 
 class PostQuery(BaseQuery):
     posts = DjangoFilterConnectionField(PostType)

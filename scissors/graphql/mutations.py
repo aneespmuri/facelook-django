@@ -64,7 +64,7 @@ class SaveServiceDetailsMutation(BaseMutation):
         time_slot = DateTimeSlots.objects.filter(date=date, start_time=datetime.strptime(input.get('start_time'),
                                                                                          "%I:%M %p").time(),
                                                  end_time=datetime.strptime(input.get('end_time'),
-                                                                            "%I:%M %p").time()).first()
+                                                                            "%I:%M %p").time(), staff_id=cls.get_id(input.get('staff'))).first()
         time_slot.status = DateTimeSlots.BOOKED
         time_slot.save()
         data['date_range'] = time_slot
