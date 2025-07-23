@@ -35,7 +35,7 @@ class StaffQuery(BaseQuery):
         return Staff.objects.all()
 
 class DateTimeSoltQuery(BaseQuery):
-    slots = DjangoFilterConnectionField(SlotType, filterset_class=SlotFilterSet, date =graphene.Date(), staff = graphene.String())
+    slots = DjangoFilterConnectionField(SlotType, filterset_class=SlotFilterSet, date =graphene.Date(), staff_id = graphene.String())
 
     @classmethod
     def resolve_slots(cls, root, info, **kwargs):
