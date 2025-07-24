@@ -76,11 +76,19 @@ class DateTimeSlots(models.Model):
         (ONHOLD, 'On Hold'),
         (BOOKED, 'Booked'),
     )
+    appointment_choices = (
+        ('open', 'Open'),
+    ('new', 'New Appointment'),
+    ('in_progress', 'In Progress'),
+    ('finished', 'Finished'),
+    ('cancelled', 'Cancelled'),
+    )
     staff = models.ForeignKey(Staff, on_delete=models.CASCADE, null=True, blank=True)
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
     status = models.CharField(max_length=10, choices=choice_fields, default=FREE)
+    appointment_status = models.CharField(choices=appointment_choices, default='open', max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

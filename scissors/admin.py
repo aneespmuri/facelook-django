@@ -2,8 +2,11 @@ from datetime import timedelta, datetime
 
 from django import forms
 from django.contrib import admin
-from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME, AdminForm
+from django.contrib.admin import SimpleListFilter
+from django.contrib.admin.helpers import AdminForm
 from django.db import models
+from django.db.models import DateField
+from django.db.models.functions import Cast
 from django.forms import TimeInput
 from django.shortcuts import render, redirect
 from django.template.response import TemplateResponse
@@ -17,7 +20,72 @@ admin.site.register(Category)
 admin.site.register(Service)
 admin.site.register(Staff)
 
+# Filters
 
+class SpecificDateFilter(SimpleListFilter):
+    title = 'Specific Date'
+    parameter_name = 'specific_date'
+
+    def lookups(self, request, model_admin):
+        return [('dummy', 'dummy')]
+
+    def choices(self, changelist):
+        yield {
+            'selected': not self.value(),
+            'query_string': changelist.get_query_string(remove=[self.parameter_name]),
+            'display': 'All',
+        }
+
+    def queryset(self, request, queryset):
+        date_str = request.GET.get(self.parameter_name)
+
+        if date_str:
+            try:
+                date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                return queryset.annotate(
+                    date_only=Cast('date_range__date', output_field=DateField())
+                ).filter(date_only=date)
+            except ValueError:
+                return queryset.none()
+        return queryset
+
+class SpecificDateSlotFilter(SimpleListFilter):
+    title = 'Specific Date'
+    parameter_name = 'specific_date'
+
+    def lookups(self, request, model_admin):
+        return [('dummy', 'dummy')]
+
+    def choices(self, changelist):
+        yield {
+            'selected': not self.value(),
+            'query_string': changelist.get_query_string(remove=[self.parameter_name]),
+            'display': 'All',
+        }
+
+    def queryset(self, request, queryset):
+        date_str = request.GET.get(self.parameter_name)
+
+        if date_str:
+            try:
+                date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                return queryset.filter(date=date)
+            except ValueError:
+                return queryset.none()
+        return queryset
+
+class StaffFilter(SimpleListFilter):
+    title = 'Staff'
+    parameter_name = 'staff'
+
+    def lookups(self, request, model_admin):
+        return [(staff.id, staff.name) for staff in Staff.objects.all()]
+
+    def queryset(self, request, queryset):
+        staff_id = self.value()
+        if staff_id:
+            return queryset.filter(staff__id=staff_id)
+        return queryset
 # admin.site.register(ServiceDetail)
 
 @admin.register(Customers)
@@ -30,10 +98,15 @@ class CustomersAdmin(admin.ModelAdmin):
     def has_change_permission(self, request, obj=None):
         return False
 
+    list_per_page = 20
 
 @admin.register(DateTimeSlots)
 class DateTimeSlotsAdmin(admin.ModelAdmin):
-    list_display = ['date', 'formatted_start_time', 'formatted_end_time', 'status', 'staff']
+    list_display = ['date', 'formatted_start_time', 'formatted_end_time', 'status', 'staff', 'appointment_status']
+    list_editable = ['appointment_status']
+
+    class Media:
+        js = ('js/admin_date.js',)
 
     def has_add_permission(self, request):
         return False
@@ -88,6 +161,7 @@ class DateTimeSlotsAdmin(admin.ModelAdmin):
                 start_time = form.cleaned_data['start_time'].replace(second=0, microsecond=0)
                 end_time = form.cleaned_data['end_time'].replace(second=0, microsecond=0)
                 status = form.cleaned_data['status']
+                appointment_status = form.cleaned_data['appointment_status']
 
                 delta_days = (end_date - start_date).days + 1
                 slots = []
@@ -101,7 +175,6 @@ class DateTimeSlotsAdmin(admin.ModelAdmin):
                     while current_slot_start < slot_end_datetime:
                         current_slot_end = current_slot_start + timedelta(minutes=30)
 
-                        # Avoid duplicates
                         if not DateTimeSlots.objects.filter(
                                 staff=staff,
                                 date=current_date,
@@ -114,7 +187,8 @@ class DateTimeSlotsAdmin(admin.ModelAdmin):
                                     date=current_date,
                                     start_time=current_slot_start.time(),
                                     end_time=current_slot_end.time(),
-                                    status=status
+                                    status=status,
+                                    appointment_status=appointment_status,
                                 )
                             )
 
@@ -156,10 +230,21 @@ class DateTimeSlotsAdmin(admin.ModelAdmin):
 
         return TemplateResponse(request, 'admin/change_form.html', context)
 
+    def save_model(self, request, obj, form, change):
+        if 'appointment_status' in form.changed_data and obj.appointment_status == 'cancelled':
+            obj.status = 'free'
+        super().save_model(request, obj, form, change)
+
+    list_filter = (StaffFilter, SpecificDateSlotFilter)
+    list_per_page = 20
+
 
 @admin.register(ServiceDetail)
 class ServiceDetailAdmin(admin.ModelAdmin):
-    list_display = ['get_category', 'get_service', 'get_customer', 'get_staff', 'get_date_time', 'get_status']
+
+    class Media:
+        js = ('js/admin_date.js',)
+    list_display = ['get_category', 'get_service', 'get_customer', 'get_staff', 'get_date_time', 'get_status','get_appointment_status']
 
     def has_change_permission(self, request, obj=None):
         return False
@@ -169,6 +254,9 @@ class ServiceDetailAdmin(admin.ModelAdmin):
 
     def get_service(self, obj):
         return obj.service
+
+    def get_appointment_status(self, obj):
+        return obj.date_range.appointment_status
 
     def get_category(self, obj):
         return obj.category
@@ -191,5 +279,9 @@ class ServiceDetailAdmin(admin.ModelAdmin):
     get_staff.short_description = 'Staff'
     get_date_time.short_description = 'Slot'
     get_status.short_description = 'Status'
+    get_appointment_status.short_description = 'Appointment Status'
 
     search_fields = ['service__name', 'customer__first_name']
+
+    list_filter = (StaffFilter, SpecificDateFilter)
+    list_per_page = 20

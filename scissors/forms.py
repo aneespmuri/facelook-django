@@ -21,10 +21,11 @@ class BulkCreateSlotsForm(forms.ModelForm):
         widget=forms.TimeInput(format='%I:%M %p', attrs={'class': 'form-control', 'placeholder': '04:00 PM'},)
     )
     status = forms.ChoiceField(choices=DateTimeSlots.choice_fields, widget=forms.Select(attrs={'class': 'form-control'}))
+    appointment_status = forms.ChoiceField(choices=DateTimeSlots.appointment_choices, widget=forms.Select(attrs={'class': 'form-control'}))
 
     class Meta:
         model = DateTimeSlots
-        fields = ('staff', 'start_date', 'end_date', 'start_time', 'end_time', 'status')
+        fields = ('staff', 'start_date', 'end_date', 'start_time', 'end_time', 'status', 'appointment_status')
 
     def clean_start_time(self):
         val = self.cleaned_data['start_time']

@@ -31,6 +31,7 @@ class UpdateTimeSlotsMutation(BaseMutation):
         date = graphene.Date()
         start_time = graphene.String(required=True)
         end_time = graphene.String(required=True)
+        staff = graphene.String(required=True)
 
     time_slots = graphene.List(SlotType)
 
@@ -39,8 +40,8 @@ class UpdateTimeSlotsMutation(BaseMutation):
         start_time = datetime.strptime(input.get('start_time'), "%I:%M %p").time()
         end_time = datetime.strptime(input.get('end_time'), "%I:%M %p").time()
         DateTimeSlots.objects.filter(date=input.get('date'), start_time=start_time,
-                                     end_time=end_time).update(status=DateTimeSlots.ONHOLD)
-        time_slots = DateTimeSlots.objects.filter(date=input.get('date'), start_time=start_time, end_time=end_time)
+                                     end_time=end_time, staff_id=cls.get_id(input.get('staff'))).update(status=DateTimeSlots.ONHOLD)
+        time_slots = DateTimeSlots.objects.filter(date=input.get('date'), start_time=start_time, end_time=end_time, staff_id=cls.get_id(input.get('staff')))
         return cls(message="Status updated", time_slots=time_slots)
 
 
@@ -66,6 +67,7 @@ class SaveServiceDetailsMutation(BaseMutation):
                                                  end_time=datetime.strptime(input.get('end_time'),
                                                                             "%I:%M %p").time(), staff_id=cls.get_id(input.get('staff'))).first()
         time_slot.status = DateTimeSlots.BOOKED
+        time_slot.appointment_status = 'new'
         time_slot.save()
         data['date_range'] = time_slot
         basic_details = input.get('basic_details')
