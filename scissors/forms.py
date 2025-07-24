@@ -1,10 +1,15 @@
 from datetime import datetime
 
 from django import forms
-from .models import DateTimeSlots
+from .models import DateTimeSlots, Staff
 
 
 class BulkCreateSlotsForm(forms.ModelForm):
+    staff = forms.ModelChoiceField(
+        queryset=Staff.objects.all(),
+        empty_label="Select a staff",  # optional
+        widget=forms.Select(attrs={'class': 'form-control'})  # optional
+    )
     start_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
     end_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
     start_time = forms.TimeField(
@@ -19,7 +24,7 @@ class BulkCreateSlotsForm(forms.ModelForm):
 
     class Meta:
         model = DateTimeSlots
-        fields = ('start_date', 'end_date', 'start_time', 'end_time', 'status')
+        fields = ('staff', 'start_date', 'end_date', 'start_time', 'end_time', 'status')
 
     def clean_start_time(self):
         val = self.cleaned_data['start_time']

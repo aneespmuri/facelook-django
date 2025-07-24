@@ -33,7 +33,7 @@ class CustomersAdmin(admin.ModelAdmin):
 
 @admin.register(DateTimeSlots)
 class DateTimeSlotsAdmin(admin.ModelAdmin):
-    list_display = ['date', 'start_time', 'end_time', 'status']
+    list_display = ['date', 'start_time', 'end_time', 'status', 'staff']
 
     def has_add_permission(self, request):
         return False
@@ -61,12 +61,16 @@ class DateTimeSlotsAdmin(admin.ModelAdmin):
         extra_context['bulk_create_url'] = reverse('admin:datetimeslots_bulk_create')
         return super().changelist_view(request, extra_context=extra_context)
 
+    def get_queryset(self, request):
+        return DateTimeSlots.objects.all().order_by('-created_at')
+
     def bulk_create_view(self, request):
         context = self.admin_site.each_context(request)
 
         if request.method == 'POST':
             form = BulkCreateSlotsForm(request.POST)
             if form.is_valid():
+                staff = form.cleaned_data['staff']
                 start_date = form.cleaned_data['start_date']
                 end_date = form.cleaned_data['end_date']
                 start_time = form.cleaned_data['start_time'].replace(second=0, microsecond=0)
@@ -76,6 +80,7 @@ class DateTimeSlotsAdmin(admin.ModelAdmin):
                 delta = (end_date - start_date).days + 1
                 slots = [
                     DateTimeSlots(
+                        staff=staff,
                         date=start_date + timedelta(days=i),
                         start_time=start_time.replace(second=0, microsecond=0),
                         end_time=end_time.replace(second=0, microsecond=0),
