@@ -88,7 +88,7 @@ class DateTimeSlots(models.Model):
         db_table = 'datetime_slots'
 
     def __str__(self):
-        return f"{self.date}\n({self.start_time}-{self.end_time})"
+        return f"{self.date} ({self.start_time.strftime('%I:%M %p')} - {self.end_time.strftime('%I:%M %p')})"
 
 class ServiceDetail(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True)
