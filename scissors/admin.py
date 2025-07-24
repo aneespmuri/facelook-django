@@ -88,6 +88,7 @@ class DateTimeSlotsAdmin(admin.ModelAdmin):
                     )
                     for i in range(delta)
                     if not DateTimeSlots.objects.filter(
+                        staff=staff,
                         date=start_date + timedelta(days=i),
                         start_time=start_time.replace(second=0, microsecond=0),
                         end_time=end_time.replace(second=0, microsecond=0)
