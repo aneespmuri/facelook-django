@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from django import forms
 from django.contrib import admin
@@ -33,10 +33,22 @@ class CustomersAdmin(admin.ModelAdmin):
 
 @admin.register(DateTimeSlots)
 class DateTimeSlotsAdmin(admin.ModelAdmin):
-    list_display = ['date', 'start_time', 'end_time', 'status', 'staff']
+    list_display = ['date', 'formatted_start_time', 'formatted_end_time', 'status', 'staff']
 
     def has_add_permission(self, request):
         return False
+
+    def formatted_start_time(self, obj):
+        return obj.start_time.strftime('%I:%M %p')
+
+    formatted_start_time.short_description = 'Start Time'
+
+    # Format end_time to "10:30 AM"
+    def formatted_end_time(self, obj):
+        return obj.end_time.strftime('%I:%M %p')
+
+    formatted_end_time.short_description = 'End Time'
+
 
     formfield_overrides = {
         models.TimeField: {
@@ -77,28 +89,43 @@ class DateTimeSlotsAdmin(admin.ModelAdmin):
                 end_time = form.cleaned_data['end_time'].replace(second=0, microsecond=0)
                 status = form.cleaned_data['status']
 
-                delta = (end_date - start_date).days + 1
-                slots = [
-                    DateTimeSlots(
-                        staff=staff,
-                        date=start_date + timedelta(days=i),
-                        start_time=start_time.replace(second=0, microsecond=0),
-                        end_time=end_time.replace(second=0, microsecond=0),
-                        status=status
-                    )
-                    for i in range(delta)
-                    if not DateTimeSlots.objects.filter(
-                        staff=staff,
-                        date=start_date + timedelta(days=i),
-                        start_time=start_time.replace(second=0, microsecond=0),
-                        end_time=end_time.replace(second=0, microsecond=0)
-                    ).exists()
-                ]
-                if len(slots)>0 :
+                delta_days = (end_date - start_date).days + 1
+                slots = []
+
+                for day_offset in range(delta_days):
+                    current_date = start_date + timedelta(days=day_offset)
+
+                    current_slot_start = datetime.combine(current_date, start_time)
+                    slot_end_datetime = datetime.combine(current_date, end_time)
+
+                    while current_slot_start < slot_end_datetime:
+                        current_slot_end = current_slot_start + timedelta(minutes=30)
+
+                        # Avoid duplicates
+                        if not DateTimeSlots.objects.filter(
+                                staff=staff,
+                                date=current_date,
+                                start_time=current_slot_start.time(),
+                                end_time=current_slot_end.time()
+                        ).exists():
+                            slots.append(
+                                DateTimeSlots(
+                                    staff=staff,
+                                    date=current_date,
+                                    start_time=current_slot_start.time(),
+                                    end_time=current_slot_end.time(),
+                                    status=status
+                                )
+                            )
+
+                        current_slot_start = current_slot_end
+
+                if slots:
                     DateTimeSlots.objects.bulk_create(slots)
                     self.message_user(request, f"✅ Created {len(slots)} new slots.")
                 else:
-                    self.message_user(request, f"⚠ No new slots were created. Same slot exist with {start_date.strftime('%B %d, %Y')} .", level='warning')
+                    self.message_user(request, "⚠ No new slots were created. All time slots already exist.",
+                                      level='warning')
                 return redirect('..')
         else:
             form = BulkCreateSlotsForm()
@@ -113,7 +140,7 @@ class DateTimeSlotsAdmin(admin.ModelAdmin):
             'title': 'Bulk Create DateTime Slots',
             'adminform': admin_form,
             'form': form,
-            'add': True,  # Important for 'Save' button display
+            'add': True,
             'change': False,
             'is_popup': False,
             'save_as': False,
