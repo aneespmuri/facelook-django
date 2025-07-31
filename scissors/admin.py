@@ -1,16 +1,23 @@
+import csv
 from datetime import timedelta, datetime
 
 from django import forms
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.helpers import AdminForm
+from django.contrib.admin.views.main import ChangeList
 from django.db import models
 from django.db.models import DateField
 from django.db.models.functions import Cast
 from django.forms import TimeInput
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.template.response import TemplateResponse
 from django.urls import path, reverse
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 
 from scissors.forms import BulkCreateSlotsForm
 from scissors.models import Category, Customers, Service, Staff, DateTimeSlots, ServiceDetail
@@ -114,9 +121,82 @@ class DateTimeSlotsAdmin(admin.ModelAdmin):
     def formatted_start_time(self, obj):
         return obj.start_time.strftime('%I:%M %p')
 
+    def get_full_queryset(self, request):
+        modeladmin = self
+        cl = ChangeList(
+            request, modeladmin.model, modeladmin.list_display,
+            modeladmin.list_display_links, modeladmin.list_filter,
+            modeladmin.date_hierarchy, modeladmin.search_fields,
+            modeladmin.list_select_related, modeladmin.list_per_page,
+            modeladmin.list_max_show_all, modeladmin.list_editable,
+            modeladmin
+        )
+        return cl.get_queryset(request)
+
+    def export_as_csv(self, request, queryset):
+        meta = self.model._meta
+        field_names = ['date', 'start_time', 'end_time', 'status', 'staff', 'appointment_status']
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename={meta.model_name}_export.csv'
+        writer = csv.writer(response)
+
+        writer.writerow(field_names)
+        for obj in queryset:
+            writer.writerow([
+                obj.date,
+                obj.start_time.strftime('%I:%M %p'),
+                obj.end_time.strftime('%I:%M %p'),
+                obj.status,
+                obj.staff,
+                obj.appointment_status
+            ])
+
+        return response
+
+    def export_as_pdf(self, request, queryset):
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{self.model._meta.model_name}_export.pdf"'
+
+        doc = SimpleDocTemplate(response, pagesize=A4)
+        elements = []
+        styles = getSampleStyleSheet()
+        elements.append(Paragraph(f"{self.model._meta.verbose_name_plural.title()} Report", styles['Title']))
+        elements.append(Spacer(1, 12))
+
+        # Table header
+        data = [['Date', 'Start Time', 'End Time', 'Status', 'Staff', 'Appointment Status']]
+
+        # Table rows
+        for obj in queryset:
+            data.append([
+                obj.date.strftime('%Y-%m-%d'),
+                obj.start_time.strftime('%I:%M %p'),
+                obj.end_time.strftime('%I:%M %p'),
+                str(obj.status),
+                str(obj.staff),
+                str(obj.appointment_status)
+            ])
+
+        table = Table(data)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.lightblue),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ]))
+
+        elements.append(table)
+        doc.build(elements)
+        return response
+
+    export_as_csv.short_description = "Export Selected as CSV"
+    export_as_pdf.short_description = "Export Selected as PDF"
+
     formatted_start_time.short_description = 'Start Time'
 
-    # Format end_time to "10:30 AM"
     def formatted_end_time(self, obj):
         return obj.end_time.strftime('%I:%M %p')
 
@@ -237,6 +317,7 @@ class DateTimeSlotsAdmin(admin.ModelAdmin):
 
     list_filter = (StaffFilter, SpecificDateSlotFilter)
     list_per_page = 20
+    actions = ['export_as_csv', 'export_as_pdf']
 
 
 @admin.register(ServiceDetail)
