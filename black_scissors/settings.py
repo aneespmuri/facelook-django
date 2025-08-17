@@ -31,7 +31,8 @@ ALLOWED_HOSTS = ['*']
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
-    'https://face-look.vercel.app'
+    'https://face-look.vercel.app',
+    'https://www.thefacelooks.com',
 ]
 
 # Application definition
